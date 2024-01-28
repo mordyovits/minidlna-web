@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	_ "embed"
+	"flag"
 	"fmt"
 	"io"
 	"net/url"
@@ -228,11 +229,16 @@ func getDetail(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	port := flag.Int("listen-port", 3333, "TCP port on which to listen")
+	listenAddr := flag.String("listen-addr", "", "Address on which to listen")
+	flag.Parse()
+
 	mux := http.NewServeMux()
 	mux.Handle("/", http.RedirectHandler("/browse", http.StatusSeeOther))
 	mux.HandleFunc("/browse", getBrowse)
 	mux.HandleFunc("/detail", getDetail)
-	err := http.ListenAndServe(":3333", mux)
+
+	err := http.ListenAndServe(fmt.Sprintf("%s:%d", *listenAddr, *port), mux)
 	if err != nil {
 		panic(err) // wrong, could be close
 	}
