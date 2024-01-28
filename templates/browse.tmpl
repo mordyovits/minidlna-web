@@ -11,7 +11,7 @@
 {{ if hasPrefix .Class "container" }}
       <li>📁 <a href="/browse?id={{ .Object_id }}">{{ .Name }}</a></li>
 {{ else }}
-	  <li>🗎 {{ .Name }}<a href="/detail?id={{ .Detail_id }}">details</a> <a href="http://192.168.1.193:8200/MediaItems/{{ .Detail_id }}-{{ .Name }}">download</a></li>
+	  <li>🗎 {{ .Name }}<a href="/detail?id={{ .Detail_id }}">details</a> <a href="{{ $.Base_url }}{{ .Detail_id }}-{{ .Name }}">download</a></li>
 {{ end }}
 {{ end }}
     </ul>

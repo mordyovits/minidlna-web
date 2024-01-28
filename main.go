@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	// "os"
+	"os"
 	// "time"
 	"html/template"
 	_ "modernc.org/sqlite"
@@ -55,6 +55,7 @@ type Detail struct {
 }
 
 type browse_context struct {
+	Base_url  string
 	Name      string
 	Parent_id string
 	Children  []Object
@@ -161,7 +162,7 @@ func browseObject(object_id string) (*browse_context, error) {
 		fmt.Printf("ERROR closing db\n")
 		return nil, err
 	}
-
+	bc.Base_url = base_url
 	return &bc, nil
 }
 
@@ -228,10 +229,22 @@ func getDetail(w http.ResponseWriter, r *http.Request) {
 
 }
 
+
+var base_url string
+
+func init() {
+	flag.StringVar(&base_url, "base-url", "", "Base URL of the minidlna /MediaItems/ path, e.g. http://hostname:8200/MediaItems/")
+}
+
 func main() {
 	port := flag.Int("listen-port", 3333, "TCP port on which to listen")
 	listenAddr := flag.String("listen-addr", "", "Address on which to listen")
 	flag.Parse()
+
+	if base_url == "" {
+		fmt.Println("ERROR: Missing base_url cmdline parameter")
+		os.Exit(-1)
+	}
 
 	mux := http.NewServeMux()
 	mux.Handle("/", http.RedirectHandler("/browse", http.StatusSeeOther))
