@@ -83,7 +83,7 @@ var browse_tmpl_string = "<html><head><title>Browse Object</title></head><body>"
 						 "{{if hasPrefix .Class \"container\"}}" +
 						 "<li><a href=\"/browse?id={{ .Object_id }}\">{{ .Name }}</a></li>" +
 						 "{{ else }}" +
-						 "<li><a href=\"http://192.168.1.193:8200/MediaItems/{{ .Detail_id }}\">{{ .Name }}</a></li>" +
+						 "<li><a href=\"http://192.168.1.193:8200/MediaItems/{{ .Detail_id }}-{{ .Name }}\">{{ .Name }}</a></li>" +
 						 "{{ end }}" +
 						 "{{ end }}</ul>" +						 
 						 "</body></html>"
