@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"strings"
 	// "os"
 	// "time"
 	"html/template"
@@ -56,7 +57,7 @@ type browse_context struct {
 }
 
 
-var db_filename = "files.db"
+var db_filename = "files2.db"
 
 //db_directory := "/var/cache/minidlna"
 var db_directory = "."
@@ -79,7 +80,11 @@ var browse_tmpl_string = "<html><head><title>Browse Object</title></head><body>"
                          "Parent: <a href=\"/browse?id={{ .Parent_id }}\">UP</a><hr/>" +
 						 "<ul>" +
 						 "{{ range .Children }}" +
+						 "{{if hasPrefix .Class \"container\"}}" +
 						 "<li><a href=\"/browse?id={{ .Object_id }}\">{{ .Name }}</a></li>" +
+						 "{{ else }}" +
+						 "<li><a href=\"http://192.168.1.193:8200/MediaItems/{{ .Detail_id }}\">{{ .Name }}</a></li>" +
+						 "{{ end }}" +
 						 "{{ end }}</ul>" +						 
 						 "</body></html>"
 
@@ -209,7 +214,7 @@ func getBrowse(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("bc = %v\n", bc)
 	//fmt.Printf("browse, parent_id = %s\n", parent_id)
 	//fmt.Printf("browse, children = %v\n", children)
-	browse_tmpl, err := template.New("browse").Parse(browse_tmpl_string)
+	browse_tmpl, err := template.New("browse").Funcs(template.FuncMap{"hasPrefix": strings.HasPrefix,}).Parse(browse_tmpl_string)
 	if err != nil {
 		panic(err)
 	}
