@@ -10,11 +10,9 @@ import (
 	"strconv"
 	"strings"
 	"os"
-	// "time"
 	"html/template"
 	_ "modernc.org/sqlite"
 	"net/http"
-	"path/filepath"
 )
 
 type Object struct {
@@ -61,12 +59,6 @@ type browse_context struct {
 	Children  []Object
 }
 
-var db_filename = "files2.db"
-
-// db_directory := "/var/cache/minidlna"
-var db_directory = "."
-var db_fullpath = filepath.Join(db_directory, db_filename)
-
 //go:embed templates/root.tmpl
 var root_tmpl_string string
 
@@ -78,7 +70,7 @@ var detail_tmpl_string string
 
 func fetchAllDetails() ([]Detail, error) {
 	details := make([]Detail, 0)
-	db, err := sql.Open("sqlite", db_fullpath)
+	db, err := sql.Open("sqlite", db_filepath)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +103,7 @@ func fetchAllDetails() ([]Detail, error) {
 
 func fetchDetail(id int) (*Detail, error) {
 	var d Detail
-	db, err := sql.Open("sqlite", db_fullpath)
+	db, err := sql.Open("sqlite", db_filepath)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +120,7 @@ func fetchDetail(id int) (*Detail, error) {
 
 func browseObject(object_id string) (*browse_context, error) {
 	var bc browse_context
-	db, err := sql.Open("sqlite", db_fullpath)
+	db, err := sql.Open("sqlite", db_filepath)
 	if err != nil {
 		return nil, err
 	}
@@ -229,10 +221,11 @@ func getDetail(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
+var db_filepath string
 var base_url string
 
 func init() {
+	flag.StringVar(&db_filepath, "db-file", "", "Path of the minidlna sqlite file, e.g. /var/cache/minidlna/files.db")
 	flag.StringVar(&base_url, "base-url", "", "Base URL of the minidlna /MediaItems/ path, e.g. http://hostname:8200/MediaItems/")
 }
 
@@ -242,7 +235,12 @@ func main() {
 	flag.Parse()
 
 	if base_url == "" {
-		fmt.Println("ERROR: Missing base_url cmdline parameter")
+		fmt.Println("ERROR: Missing base-url cmdline parameter")
+		os.Exit(-1)
+	}
+
+	if db_filepath == "" {
+		fmt.Println("ERROR: Missing db-file cmdline parameter")
 		os.Exit(-1)
 	}
 
