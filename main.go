@@ -130,7 +130,6 @@ func browseObject(object_id string) (*browse_context, error ) {
 	if err != nil {
 		return nil, err
 	}
-	//var p_id string
 	// fetch the parent_id of the browsed object
 	row := db.QueryRow("SELECT PARENT_ID, NAME FROM OBJECTS WHERE OBJECT_ID=?", object_id)
 	if err = row.Scan(&bc.Parent_id, &bc.Name); err != nil {
@@ -147,12 +146,11 @@ func browseObject(object_id string) (*browse_context, error ) {
 	for rows.Next() {
 		var o Object
 		if err = rows.Scan(&o.Id, &o.Object_id, &o.Parent_id, &o.Ref_id, &o.Class, &o.Detail_id, &o.Name); err != nil {
-			fmt.Printf("ERROR scanning row of schildren\n")
+			fmt.Printf("ERROR scanning row of children\n")
 			return nil, err
 		}
 		objects = append(objects, o)
 	}
-
 	if err = rows.Err(); err != nil {
 		fmt.Printf("ERROR gow a rows error\n")
 		return nil, err
@@ -176,14 +174,13 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	root_tmpl.Execute(w, details)
-	//io.WriteString(w, "This is my website!\n")
 }
 
 func getBrowse(w http.ResponseWriter, r *http.Request) {
 	params, _ := url.ParseQuery(r.URL.RawQuery)
 	idParam, ok := params["id"]
 	if !ok {
-		// no id was supplied, defautl to root
+		// no id was supplied, default to root
 		idParam = []string{"0"}
 	}
 	// there should be only one id param
