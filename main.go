@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/url"
-	"strings"
 	"strconv"
+	"strings"
 	// "os"
 	// "time"
 	"html/template"
@@ -17,13 +17,13 @@ import (
 )
 
 type Object struct {
-	Id int64 //   ID INTEGER PRIMARY KEY AUTOINCREMENT
-	Object_id string // OBJECT_ID TEXT UNIQUE NOT NULL
-	Parent_id string // PARENT_ID TEXT NOT NULL
-	Ref_id sql.NullString // REF_ID TEXT DEFAULT NULL
-	Class string // CLASS TEXT NOT NULL
-	Detail_id int64 // DETAIL_ID INTEGER DEFAULT NULL
-	Name string // NAME TEXT DEFAULT NULL
+	Id        int64          //   ID INTEGER PRIMARY KEY AUTOINCREMENT
+	Object_id string         // OBJECT_ID TEXT UNIQUE NOT NULL
+	Parent_id string         // PARENT_ID TEXT NOT NULL
+	Ref_id    sql.NullString // REF_ID TEXT DEFAULT NULL
+	Class     string         // CLASS TEXT NOT NULL
+	Detail_id int64          // DETAIL_ID INTEGER DEFAULT NULL
+	Name      string         // NAME TEXT DEFAULT NULL
 }
 
 type Detail struct {
@@ -54,14 +54,14 @@ type Detail struct {
 }
 
 type browse_context struct {
-	Name string
+	Name      string
 	Parent_id string
-	Children []Object
+	Children  []Object
 }
 
 var db_filename = "files2.db"
 
-//db_directory := "/var/cache/minidlna"
+// db_directory := "/var/cache/minidlna"
 var db_directory = "."
 var db_fullpath = filepath.Join(db_directory, db_filename)
 
@@ -113,18 +113,18 @@ func fetchDetail(id int) (*Detail, error) {
 	if err != nil {
 		return nil, err
 	}
-	row := db.QueryRow("SELECT PATH, SIZE, TIMESTAMP, TITLE, DURATION, BITRATE, SAMPLERATE, CREATOR, ARTIST, ALBUM, GENRE, COMMENT, CHANNELS," +
-	                   "DISC, TRACK, DATE, RESOLUTION, THUMBNAIL, ALBUM_ART, ROTATION, DLNA_PN, MIME FROM DETAILS WHERE ID=?", id)
-	if err = row.Scan(&d.Path, &d.Size, &d.Timestamp, &d.Title, &d.Duration, &d.Bitrate, &d.Samplerate, &d.Creator, &d.Artist, &d. Album,
-		              &d.Genre, &d.Comment, &d.Channels, &d.Disc, &d.Track, &d.Date, &d.Resolution, &d.Thumbnail, &d.Album_art, &d.Rotation,
-					  &d.Dlna_pn, &d.Mime); err != nil {
+	row := db.QueryRow("SELECT PATH, SIZE, TIMESTAMP, TITLE, DURATION, BITRATE, SAMPLERATE, CREATOR, ARTIST, ALBUM, GENRE, COMMENT, CHANNELS,"+
+		"DISC, TRACK, DATE, RESOLUTION, THUMBNAIL, ALBUM_ART, ROTATION, DLNA_PN, MIME FROM DETAILS WHERE ID=?", id)
+	if err = row.Scan(&d.Path, &d.Size, &d.Timestamp, &d.Title, &d.Duration, &d.Bitrate, &d.Samplerate, &d.Creator, &d.Artist, &d.Album,
+		&d.Genre, &d.Comment, &d.Channels, &d.Disc, &d.Track, &d.Date, &d.Resolution, &d.Thumbnail, &d.Album_art, &d.Rotation,
+		&d.Dlna_pn, &d.Mime); err != nil {
 		fmt.Printf("ERROR scanning id\n")
 		return nil, err
 	}
 	return &d, nil
 }
 
-func browseObject(object_id string) (*browse_context, error ) {
+func browseObject(object_id string) (*browse_context, error) {
 	var bc browse_context
 	db, err := sql.Open("sqlite", db_fullpath)
 	if err != nil {
@@ -192,7 +192,7 @@ func getBrowse(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err) // TODO nfw
 	}
-	browse_tmpl, err := template.New("browse").Funcs(template.FuncMap{"hasPrefix": strings.HasPrefix,}).Parse(browse_tmpl_string)
+	browse_tmpl, err := template.New("browse").Funcs(template.FuncMap{"hasPrefix": strings.HasPrefix}).Parse(browse_tmpl_string)
 	if err != nil {
 		panic(err)
 	}
