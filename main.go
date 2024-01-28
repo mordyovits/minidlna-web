@@ -217,61 +217,10 @@ func getBrowse(w http.ResponseWriter, r *http.Request) {
 	browse_tmpl.Execute(w, bc)
 }
 
-/*
-func getHello(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("got /hello request\n")
-	io.WriteString(w, "Hello, HTTP!\n")
-}
-*/
-
 func main() {
-	/*
-	// db_filename := "files.db"
-	//db_directory := "/var/cache/minidlna"
-	// db_directory := "."
-	// db_fullpath := filepath.Join(db_directory, db_filename)
-	db, err := sql.Open("sqlite", db_fullpath)
-	if err != nil {
-		fmt.Printf("Failed to open DB: %s\n", err)
-		os.Exit(1)
-	}
-	// fmt.Printf("%v\n", db)
-
-	rows, err := db.Query("SELECT id, path, size, timestamp, title, duration, bitrate, samplerate, " +
-		"creator, artist, album, genre, comment, channels, disc, track, date, " +
-		"resolution, thumbnail, album_art, rotation, dlna_pn, mime FROM DETAILS;")
-	if err != nil {
-		fmt.Printf("Failed to query DB: %s\n", err)
-		os.Exit(1)
-	}
-
-	for rows.Next() {
-		var d Detail
-		// fmt.Printf("%+v\n", rows)
-		if err = rows.Scan(&d.id, &d.path, &d.size, &d.timestamp, &d.title, &d.duration, &d.bitrate,
-			&d.samplerate, &d.creator, &d.artist, &d.album, &d.genre, &d.comment,
-			&d.channels, &d.disc, &d.track, &d.date, &d.resolution, &d.thumbnail,
-			&d.album_art, &d.rotation, &d.dlna_pn, &d.mime); err != nil {
-			fmt.Printf("Failed to Scan row: %s\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("%+v\n", d)
-	}
-
-	if err = rows.Err(); err != nil {
-		fmt.Printf("Got an Err from rows: %s\n", err)
-		os.Exit(1)
-	}
-
-	if err = db.Close(); err != nil {
-		fmt.Printf("Failed to close DB: %s\n", err)
-		os.Exit(1)
-	}
-	*/
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", getRoot)
 	mux.HandleFunc("/browse", getBrowse)
-	//mux.HandleFunc("/hello", getHello)
 	err := http.ListenAndServe(":3333", mux)
 	if err != nil {
 		panic(err) // wrong, could be close
