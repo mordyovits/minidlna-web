@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <title>Root</title>
+  </head>
+  <body>
+  All details:<hr/>
+  <table>
+    <tr>
+      <th>ID</th>
+      <th>PATH</th>
+      <th>SIZE</th>
+      <th>TIMESTAMP</th>
+      <th>TITLE</th>
+      <th>DURATION</th>
+      <th>BITRATE</th>
+    </tr>
+{{ range . }}
+    <tr>
+      <td><a href="http://irac:8200/MediaItems/{{ .Id }}">{{ .Id }}</a></td>
+      <td>{{ .Path }}</td>
+      <td>{{ .Size }}</td>
+      <td>{{ .Timestamp }}</td>
+      <td>{{ .Title }}</td>
+      <td>{{ .Duration }}</td>
+      <td>{{ .Bitrate }}</td>
+    </tr>
+{{ end }}
+  </table>
+  </body>
+</html>

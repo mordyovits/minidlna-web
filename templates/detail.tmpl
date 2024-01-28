@@ -1,0 +1,31 @@
+<html>
+  <head>
+	<title>Detail</title>
+  </head>
+  <body>
+    <table border="1">
+	{{ if .Path.Valid }}<tr><td>Path</td><td>{{ .Path.String }}</td></tr> {{ end }}
+	{{ if .Size.Valid }}<tr><td>Size</td><td>{{ .Size.Int64 }}</td></tr>{{ end }}
+	{{ if .Timestamp.Valid }}<tr><td>Timestamp</td><td>{{ .Timestamp.Int64 }}</td></tr>{{ end }}
+	{{ if .Title.Valid }}<tr><td>Title</td><td>{{ .Title.String }}</td></tr>{{ end }}
+	{{ if .Duration.Valid }}<tr><td>Duration</td><td>{{ .Duration.String }}</td></tr>{{ end }}
+	{{ if .Bitrate.Valid }}<tr><td>Bitrate</td><td>{{ .Bitrate.Int64 }}</td></tr>{{ end }}
+	{{ if .Samplerate.Valid }}<tr><td>Samplerate</td><td>{{ .Samplerate.Int64 }}</td></tr>{{ end }}
+	{{ if .Creator.Valid }}<tr><td>Creator</td><td>{{ .Creator.String }}</td></tr>{{ end }}
+	{{ if .Artist.Valid }}<tr><td>Artist</td><td>{{ .Artist.String }}</td></tr>{{ end }}
+	{{ if .Album.Valid }}<tr><td>Album</td><td>{{ .Album.String }}</td></tr>{{ end }}
+	{{ if .Genre.Valid }}<tr><td>Genre</td><td>{{ .Genre.String }}</td></tr>{{ end }}
+	{{ if .Comment.Valid }}<tr><td>Comment</td><td>{{ .Comment.String }}</td></tr>{{ end }}
+	{{ if .Channels.Valid }}<tr><td>Channels</td><td>{{ .Channels.Int64 }}</td></tr>{{ end }}
+	{{ if .Disc.Valid }}<tr><td>Disc</td><td>{{ .Disc.Int64 }}</td></tr>{{ end }}
+	{{ if .Track.Valid }}<tr><td>Track</td><td>{{ .Track.Int64 }}</td></tr>{{ end }}
+	{{ if .Date.Valid }}<tr><td>Date</td><td>{{ .Date.String }}</td></tr>{{ end }}
+	{{ if .Resolution.Valid }}<tr><td>Resolution</td><td>{{ .Resolution.String }}</td></tr>{{ end }}
+	{{ if .Thumbnail.Valid }}<tr><td>Thumbnail</td><td>{{ .Thumbnail.Bool }}</td></tr>{{ end }}
+	{{ if .Album_art.Valid }}<tr><td>Album_art</td><td>{{ .Album_art.Int64 }}</td></tr>{{ end }}
+	{{ if .Rotation.Valid }}<tr><td>Rotation</td><td>{{ .Rotation.Int64 }}</td></tr>{{ end }}
+	{{ if .Dlna_pn.Valid }}<tr><td>Dlna_pn</td><td>{{ .Dlna_pn.String }}</td></tr>{{ end }}
+	{{ if .Mime.Valid }}<tr><td>Mime</td><td>{{ .Mime.String }}</td></tr>{{ end }}
+	</table>
+  </body>
+</html>

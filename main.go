@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	_ "embed"
 	"fmt"
 	"io"
 	"net/url"
@@ -65,59 +66,14 @@ var db_filename = "files2.db"
 var db_directory = "."
 var db_fullpath = filepath.Join(db_directory, db_filename)
 
-var root_tmpl_string = "<html><head><title>Root</title></head><body>All details:<hr/>" +
-					   "<table><tr><th>ID</th><th>PATH</th><th>SIZE</th><th>TIMESTAMP</th><th>TITLE</th><th>DURATION</th><th>BITRATE</th></tr>" +
-                       "{{ range . }}<tr>" +
-					   "<td><a href=\"http://irac:8200/MediaItems/{{ .Id }}\">{{ .Id }}</a><td>" +
-					   "{{ .Path }}</td>" +
-					   "<td>{{ .Size }}</td>" +
-					   "<td>{{ .Timestamp }}</td>" +
-					   "<td>{{ .Title }}</td>" +
-					   "<td>{{ .Duration }}</td>" +
-					   "<td>{{ .Bitrate }}</td>" +
-					   "</tr>{{ end }}" +
-					   "</table></body></html>"
+//go:embed templates/root.tmpl
+var root_tmpl_string string
 
-var browse_tmpl_string = "<html><head><title>Browse Object</title></head><body>" +
-						 "<h1>Browsing: {{ .Name }}</h1>" +
-                         "Parent: <a href=\"/browse?id={{ .Parent_id }}\">UP</a><hr/>" +
-						 "<ul>" +
-						 "{{ range .Children }}" +
-						 "{{if hasPrefix .Class \"container\"}}" +
-						 "<li>📁 <a href=\"/browse?id={{ .Object_id }}\">{{ .Name }}</a></li>" +
-						 "{{ else }}" +
-						 "<li>🗎 {{ .Name }} <a href=\"/detail?id={{ .Detail_id }}\">details</a> <a href=\"http://192.168.1.193:8200/MediaItems/{{ .Detail_id }}-{{ .Name }}\">download</a></li>" +
-						 "{{ end }}" +
-						 "{{ end }}</ul>" +						 
-						 "</body></html>"
+//go:embed templates/browse.tmpl
+var browse_tmpl_string string
 
-var detail_tmpl_string = "<html><head><title>Detail</title></head><body>" +
-                         "<table border=\"1\">" +
-						 "{{ if .Path.Valid }}<tr><td>Path</td><td>{{ .Path.String }}</td></tr> {{ end }}" + // 
-						 "{{ if .Size.Valid }}<tr><td>Size</td><td>{{ .Size.Int64 }}</td></tr>{{ end }}" + //        sql.NullInt64  // SIZE INTEGER
-						 "{{ if .Timestamp.Valid }}<tr><td>Timestamp</td><td>{{ .Timestamp.Int64 }}</td></tr>{{ end }}" + //   sql.NullInt64  // TIMESTAMP INTEGER
-						 "{{ if .Title.Valid }}<tr><td>Title</td><td>{{ .Title.String }}</td></tr>{{ end }}" + //       sql.NullString // TITLE TEXT COLLATE NOCASE
-						 "{{ if .Duration.Valid }}<tr><td>Duration</td><td>{{ .Duration.String }}</td></tr>{{ end }}" + //    sql.NullString // DURATION TEXT
-						 "{{ if .Bitrate.Valid }}<tr><td>Bitrate</td><td>{{ .Bitrate.Int64 }}</td></tr>{{ end }}" + //     sql.NullInt64  // BITRATE INTEGER
-						 "{{ if .Samplerate.Valid }}<tr><td>Samplerate</td><td>{{ .Samplerate.Int64 }}</td></tr>{{ end }}" + //  sql.NullInt64  // SAMPLERATE INTEGER
-						 "{{ if .Creator.Valid }}<tr><td>Creator</td><td>{{ .Creator.String }}</td></tr>{{ end }}" + //     sql.NullString // CREATOR TEXT COLLATE NOCASE
-						 "{{ if .Artist.Valid }}<tr><td>Artist</td><td>{{ .Artist.String }}</td></tr>{{ end }}" + //      sql.NullString // ARTIST TEXT COLLATE NOCASE
-						 "{{ if .Album.Valid }}<tr><td>Album</td><td>{{ .Album.String }}</td></tr>{{ end }}" + //       sql.NullString // ALBUM TEXT COLLATE NOCASE
-						 "{{ if .Genre.Valid }}<tr><td>Genre</td><td>{{ .Genre.String }}</td></tr>{{ end }}" + //       sql.NullString // GENRE TEXT COLLATE NOCASE
-						 "{{ if .Comment.Valid }}<tr><td>Comment</td><td>{{ .Comment.String }}</td></tr>{{ end }}" + //     sql.NullString // COMMENT TEXT
-						 "{{ if .Channels.Valid }}<tr><td>Channels</td><td>{{ .Channels.Int64 }}</td></tr>{{ end }}" + //    sql.NullInt64  // CHANNELS INTEGER
-						 "{{ if .Disc.Valid }}<tr><td>Disc</td><td>{{ .Disc.Int64 }}</td></tr>{{ end }}" + //        sql.NullInt64  // DISC INTEGER
-						 "{{ if .Track.Valid }}<tr><td>Track</td><td>{{ .Track.Int64 }}</td></tr>{{ end }}" + //       sql.NullInt64  // TRACK INTEGER
-						 // date sql.NullTime // DATE DATE
-						 "{{ if .Date.Valid }}<tr><td>Date</td><td>{{ .Date.String }}</td></tr>{{ end }}" + //        sql.NullString // DATE DATE
-						 "{{ if .Resolution.Valid }}<tr><td>Resolution</td><td>{{ .Resolution.String }}</td></tr>{{ end }}" + //  sql.NullString // RESOLUTION TEXT
-						 "{{ if .Thumbnail.Valid }}<tr><td>Thumbnail</td><td>{{ .Thumbnail.Bool }}</td></tr>{{ end }}" + //   bool           // THUMBNAIL BOOL DEFAULT 0
-						 "{{ if .Album_art.Valid }}<tr><td>Album_art</td><td>{{ .Album_art.Int64 }}</td></tr>{{ end }}" + //   sql.NullInt64  // ALBUM_ART INTEGER DEFAULT 0
-						 "{{ if .Rotation.Valid }}<tr><td>Rotation</td><td>{{ .Rotation.Int64 }}</td></tr>{{ end }}" + //    sql.NullInt64  // ROTATION INTEGER
-						 "{{ if .Dlna_pn.Valid }}<tr><td>Dlna_pn</td><td>{{ .Dlna_pn.String }}</td></tr>{{ end }}" + //     sql.NullString // DLNA_PN TEXT
-						 "{{ if .Mime.Valid }}<tr><td>Mime</td><td>{{ .Mime.String }}</td></tr>{{ end }}" + //        sql.NullString // MIME TEXT
-						 "</table>" +
-                         "</body></html>"
+//go:embed templates/detail.tmpl
+var detail_tmpl_string string
 
 func fetchAllDetails() ([]Detail, error) {
 	details := make([]Detail, 0)
