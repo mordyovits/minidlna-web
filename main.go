@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/url"
 	"strings"
+	"strconv"
 	// "os"
 	// "time"
 	"html/template"
@@ -52,6 +53,7 @@ type Detail struct {
 }
 
 type browse_context struct {
+	Name string
 	Parent_id string
 	Children []Object
 }
@@ -77,18 +79,45 @@ var root_tmpl_string = "<html><head><title>Root</title></head><body>All details:
 					   "</table></body></html>"
 
 var browse_tmpl_string = "<html><head><title>Browse Object</title></head><body>" +
+						 "<h1>Browsing: {{ .Name }}</h1>" +
                          "Parent: <a href=\"/browse?id={{ .Parent_id }}\">UP</a><hr/>" +
 						 "<ul>" +
 						 "{{ range .Children }}" +
 						 "{{if hasPrefix .Class \"container\"}}" +
-						 "<li><a href=\"/browse?id={{ .Object_id }}\">{{ .Name }}</a></li>" +
+						 "<li>📁 <a href=\"/browse?id={{ .Object_id }}\">{{ .Name }}</a></li>" +
 						 "{{ else }}" +
-						 "<li><a href=\"http://192.168.1.193:8200/MediaItems/{{ .Detail_id }}-{{ .Name }}\">{{ .Name }}</a></li>" +
+						 "<li>🗎 {{ .Name }} <a href=\"/detail?id={{ .Detail_id }}\">details</a> <a href=\"http://192.168.1.193:8200/MediaItems/{{ .Detail_id }}-{{ .Name }}\">download</a></li>" +
 						 "{{ end }}" +
 						 "{{ end }}</ul>" +						 
 						 "</body></html>"
 
-
+var detail_tmpl_string = "<html><head><title>Detail</title></head><body>" +
+                         "<table border=\"1\">" +
+						 "{{ if .Path.Valid }}<tr><td>Path</td><td>{{ .Path.String }}</td></tr> {{ end }}" + // 
+						 "{{ if .Size.Valid }}<tr><td>Size</td><td>{{ .Size.Int64 }}</td></tr>{{ end }}" + //        sql.NullInt64  // SIZE INTEGER
+						 "{{ if .Timestamp.Valid }}<tr><td>Timestamp</td><td>{{ .Timestamp.Int64 }}</td></tr>{{ end }}" + //   sql.NullInt64  // TIMESTAMP INTEGER
+						 "{{ if .Title.Valid }}<tr><td>Title</td><td>{{ .Title.String }}</td></tr>{{ end }}" + //       sql.NullString // TITLE TEXT COLLATE NOCASE
+						 "{{ if .Duration.Valid }}<tr><td>Duration</td><td>{{ .Duration.String }}</td></tr>{{ end }}" + //    sql.NullString // DURATION TEXT
+						 "{{ if .Bitrate.Valid }}<tr><td>Bitrate</td><td>{{ .Bitrate.Int64 }}</td></tr>{{ end }}" + //     sql.NullInt64  // BITRATE INTEGER
+						 "{{ if .Samplerate.Valid }}<tr><td>Samplerate</td><td>{{ .Samplerate.Int64 }}</td></tr>{{ end }}" + //  sql.NullInt64  // SAMPLERATE INTEGER
+						 "{{ if .Creator.Valid }}<tr><td>Creator</td><td>{{ .Creator.String }}</td></tr>{{ end }}" + //     sql.NullString // CREATOR TEXT COLLATE NOCASE
+						 "{{ if .Artist.Valid }}<tr><td>Artist</td><td>{{ .Artist.String }}</td></tr>{{ end }}" + //      sql.NullString // ARTIST TEXT COLLATE NOCASE
+						 "{{ if .Album.Valid }}<tr><td>Album</td><td>{{ .Album.String }}</td></tr>{{ end }}" + //       sql.NullString // ALBUM TEXT COLLATE NOCASE
+						 "{{ if .Genre.Valid }}<tr><td>Genre</td><td>{{ .Genre.String }}</td></tr>{{ end }}" + //       sql.NullString // GENRE TEXT COLLATE NOCASE
+						 "{{ if .Comment.Valid }}<tr><td>Comment</td><td>{{ .Comment.String }}</td></tr>{{ end }}" + //     sql.NullString // COMMENT TEXT
+						 "{{ if .Channels.Valid }}<tr><td>Channels</td><td>{{ .Channels.Int64 }}</td></tr>{{ end }}" + //    sql.NullInt64  // CHANNELS INTEGER
+						 "{{ if .Disc.Valid }}<tr><td>Disc</td><td>{{ .Disc.Int64 }}</td></tr>{{ end }}" + //        sql.NullInt64  // DISC INTEGER
+						 "{{ if .Track.Valid }}<tr><td>Track</td><td>{{ .Track.Int64 }}</td></tr>{{ end }}" + //       sql.NullInt64  // TRACK INTEGER
+						 // date sql.NullTime // DATE DATE
+						 "{{ if .Date.Valid }}<tr><td>Date</td><td>{{ .Date.String }}</td></tr>{{ end }}" + //        sql.NullString // DATE DATE
+						 "{{ if .Resolution.Valid }}<tr><td>Resolution</td><td>{{ .Resolution.String }}</td></tr>{{ end }}" + //  sql.NullString // RESOLUTION TEXT
+						 "{{ if .Thumbnail.Valid }}<tr><td>Thumbnail</td><td>{{ .Thumbnail.Bool }}</td></tr>{{ end }}" + //   bool           // THUMBNAIL BOOL DEFAULT 0
+						 "{{ if .Album_art.Valid }}<tr><td>Album_art</td><td>{{ .Album_art.Int64 }}</td></tr>{{ end }}" + //   sql.NullInt64  // ALBUM_ART INTEGER DEFAULT 0
+						 "{{ if .Rotation.Valid }}<tr><td>Rotation</td><td>{{ .Rotation.Int64 }}</td></tr>{{ end }}" + //    sql.NullInt64  // ROTATION INTEGER
+						 "{{ if .Dlna_pn.Valid }}<tr><td>Dlna_pn</td><td>{{ .Dlna_pn.String }}</td></tr>{{ end }}" + //     sql.NullString // DLNA_PN TEXT
+						 "{{ if .Mime.Valid }}<tr><td>Mime</td><td>{{ .Mime.String }}</td></tr>{{ end }}" + //        sql.NullString // MIME TEXT
+						 "</table>" +
+                         "</body></html>"
 
 func fetchAllDetails() ([]Detail, error) {
 	details := make([]Detail, 0)
@@ -124,14 +153,23 @@ func fetchAllDetails() ([]Detail, error) {
 	return details, nil
 }
 
-/*
-func fetchDetail(id int) (Detail, error) {
+func fetchDetail(id int) (*Detail, error) {
+	var d Detail
 	db, err := sql.Open("sqlite", db_fullpath)
 	if err != nil {
 		return nil, err
 	}
+	row := db.QueryRow("SELECT PATH, SIZE, TIMESTAMP, TITLE, DURATION, BITRATE, SAMPLERATE, CREATOR, ARTIST, ALBUM, GENRE, COMMENT, CHANNELS," +
+	                   "DISC, TRACK, DATE, RESOLUTION, THUMBNAIL, ALBUM_ART, ROTATION, DLNA_PN, MIME FROM DETAILS WHERE ID=?", id)
+	if err = row.Scan(&d.Path, &d.Size, &d.Timestamp, &d.Title, &d.Duration, &d.Bitrate, &d.Samplerate, &d.Creator, &d.Artist, &d. Album,
+		              &d.Genre, &d.Comment, &d.Channels, &d.Disc, &d.Track, &d.Date, &d.Resolution, &d.Thumbnail, &d.Album_art, &d.Rotation,
+					  &d.Dlna_pn, &d.Mime); err != nil {
+		fmt.Printf("ERROR scanning id\n")
+		return nil, err
+	}
+	return &d, nil
 }
-*/
+
 
 func browseObject(object_id string) (*browse_context, error ) {
 	var bc browse_context
@@ -141,8 +179,8 @@ func browseObject(object_id string) (*browse_context, error ) {
 	}
 	//var p_id string
 	// fetch the parent_id of the browsed object
-	row := db.QueryRow("SELECT PARENT_ID FROM OBJECTS WHERE OBJECT_ID=?", object_id)
-	if err = row.Scan(&bc.Parent_id); err != nil {
+	row := db.QueryRow("SELECT PARENT_ID, NAME FROM OBJECTS WHERE OBJECT_ID=?", object_id)
+	if err = row.Scan(&bc.Parent_id, &bc.Name); err != nil {
 		fmt.Printf("ERROR scanning parent_id\n")
 		return nil, err
 	}
@@ -222,10 +260,40 @@ func getBrowse(w http.ResponseWriter, r *http.Request) {
 	browse_tmpl.Execute(w, bc)
 }
 
+func getDetail(w http.ResponseWriter, r *http.Request) {
+	params, _ := url.ParseQuery(r.URL.RawQuery)
+	idParam, ok := params["id"]
+	if !ok {
+		io.WriteString(w, "Missing id param")
+		return
+	}
+	// there should be only one id param
+	if len(idParam) != 1 {
+		io.WriteString(w, "Too many id params")
+		return
+	}
+	idint, err := strconv.Atoi(idParam[0])
+	if err != nil {
+		panic(err) // TODO nfw
+	}
+	d, err := fetchDetail(idint)
+	if err != nil {
+		panic(err) // TODO nfw
+	}
+	detail_tmpl, err := template.New("detail").Parse(detail_tmpl_string)
+	if err != nil {
+		panic(err)
+	}
+	detail_tmpl.Execute(w, d)
+
+}
+
+
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", getRoot)
 	mux.HandleFunc("/browse", getBrowse)
+	mux.HandleFunc("/detail", getDetail)
 	err := http.ListenAndServe(":3333", mux)
 	if err != nil {
 		panic(err) // wrong, could be close
