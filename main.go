@@ -185,8 +185,8 @@ func getBrowse(w http.ResponseWriter, r *http.Request) {
 	params, _ := url.ParseQuery(r.URL.RawQuery)
 	idParam, ok := params["id"]
 	if !ok {
-		io.WriteString(w, "Missing id param")
-		return
+		// no id was supplied, defautl to root
+		idParam = []string{"0"}
 	}
 	// there should be only one id param
 	if len(idParam) != 1 {

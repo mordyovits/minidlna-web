@@ -4,7 +4,8 @@
   </head>
   <body>
 	<h1>Browsing: {{ .Name }}</h1>
-    Parent: <a href="/browse?id={{ .Parent_id }}">UP</a><hr/>
+    <hr/>
+    {{ if ne .Parent_id "-1" }}Parent: <a href="/browse?id={{ .Parent_id }}">UP</a>{{ end }}
 	<ul>
 {{ range .Children }}
 {{ if hasPrefix .Class "container" }}
