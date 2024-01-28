@@ -133,7 +133,6 @@ func fetchAllDetails() ([]Detail, error) {
 	}
 	for rows.Next() {
 		var d Detail
-		// fmt.Printf("%+v\n", rows)
 		if err = rows.Scan(&d.Id, &d.Path, &d.Size, &d.Timestamp, &d.Title, &d.Duration, &d.Bitrate,
 			&d.Samplerate, &d.Creator, &d.Artist, &d.Album, &d.Genre, &d.Comment,
 			&d.Channels, &d.Disc, &d.Track, &d.Date, &d.Resolution, &d.Thumbnail,
@@ -184,9 +183,6 @@ func browseObject(object_id string) (*browse_context, error ) {
 		fmt.Printf("ERROR scanning parent_id\n")
 		return nil, err
 	}
-	// bc.Parent_id = p_id
-	fmt.Printf("%s\n", bc)
-	fmt.Printf("got objects_id= %s and found parent_id = %s\n", object_id, bc.Parent_id)
 	// fetch all objects that have the browsed object as parent_id
 	rows, err := db.Query("SELECT ID, OBJECT_ID, PARENT_ID, REF_ID, CLASS, DETAIL_ID, NAME FROM OBJECTS WHERE PARENT_ID=?", object_id)
 	if err != nil {
@@ -230,8 +226,6 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 }
 
 func getBrowse(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("got /browse request\n")
-	fmt.Printf("url: %v\n", r.URL)
 	params, _ := url.ParseQuery(r.URL.RawQuery)
 	idParam, ok := params["id"]
 	if !ok {
@@ -243,20 +237,14 @@ func getBrowse(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "Too many id params")
 		return
 	}
-	fmt.Printf("url: %v\n", idParam)
-    //io.WriteString(w, "Got browse")
 	bc, err := browseObject(idParam[0])
 	if err != nil {
 		panic(err) // TODO nfw
 	}
-	fmt.Printf("bc = %v\n", bc)
-	//fmt.Printf("browse, parent_id = %s\n", parent_id)
-	//fmt.Printf("browse, children = %v\n", children)
 	browse_tmpl, err := template.New("browse").Funcs(template.FuncMap{"hasPrefix": strings.HasPrefix,}).Parse(browse_tmpl_string)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("browse_tmpl = %s\n", browse_tmpl)
 	browse_tmpl.Execute(w, bc)
 }
 
