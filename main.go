@@ -59,7 +59,6 @@ type browse_context struct {
 	Children []Object
 }
 
-
 var db_filename = "files2.db"
 
 //db_directory := "/var/cache/minidlna"
@@ -124,7 +123,6 @@ func fetchDetail(id int) (*Detail, error) {
 	}
 	return &d, nil
 }
-
 
 func browseObject(object_id string) (*browse_context, error ) {
 	var bc browse_context
@@ -232,10 +230,9 @@ func getDetail(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", getRoot)
+	mux.Handle("/", http.RedirectHandler("/browse", http.StatusSeeOther))
 	mux.HandleFunc("/browse", getBrowse)
 	mux.HandleFunc("/detail", getDetail)
 	err := http.ListenAndServe(":3333", mux)
