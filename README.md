@@ -1,3 +1,5 @@
+![Screenshot of minidlna-web](/minidlna-web%20screenshot.png)
+
 # Overview
 minidlna-web provides a web frontend to the SQlite database that minidlna builds for itself. It allows you to use a web browser to explore the media that minidlna is hosting, and it offers downloads links that fetch the media directly from the minildna service.
 
