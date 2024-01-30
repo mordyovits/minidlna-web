@@ -25,10 +25,11 @@ Usage of ./minidlna-web:
         TCP port on which to listen (default 3333)
 ```
 
-# Running minidlna
+# Running minidlna-web
 1) Git clone the repo: `git clone https://github.com/mordyovits/minidlna-web.git`
 2) In the repo top directory, run `go build`
 3) Run the resulting binary with the required cmdline args, e.g.: `./minidlna-web -base-url http://192.168.1.XXX:8200/MediaItems/ -db-file /var/cache/minidlna/files.db`
+4) Access minidlna-web with a web browser (defaults to port 3333)
 
 **Note:** If you want minidlna-web to read the main sqlite database file that minidlna built and is maintaining then you will probably need to run minidlna as the minidlna role user account (usually `minidlna`).
 
