@@ -6,14 +6,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log/slog"
-	"net/url"
-	"strconv"
-	"strings"
-	"os"
 	"html/template"
+	"log/slog"
 	_ "modernc.org/sqlite"
 	"net/http"
+	"net/url"
+	"os"
+	"strconv"
+	"strings"
 )
 
 type Object struct {
