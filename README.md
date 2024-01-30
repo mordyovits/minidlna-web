@@ -36,7 +36,7 @@ Usage of ./minidlna-web:
 * Add search functionality
 * Deal with caching headers (version the static assets?)
 * Use template inheritance to DRY
-* Add FastCGI support so it can run under a web server (which can provide TLS, authentiaion and authorization)
+* Add FastCGI support so it can run under a web server (which can provide TLS, authentication, and authorization)
 * Improve the HTML and web design, which is very crude
 * Add systemd unit file
 * Add RPM build (spec) and DPKG build files
