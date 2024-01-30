@@ -3,9 +3,10 @@ package main
 import (
 	"database/sql"
 	"embed"
+	"errors"
 	"flag"
 	"fmt"
-	"io"
+	"log/slog"
 	"net/url"
 	"strconv"
 	"strings"
@@ -143,16 +144,21 @@ func getBrowse(w http.ResponseWriter, r *http.Request) {
 	}
 	// there should be only one id param
 	if len(idParam) != 1 {
-		io.WriteString(w, "Too many id params")
+		slog.Error(fmt.Sprintf("Too many id params: %s", idParam))
+		http.Error(w, "Too many id params", http.StatusInternalServerError)
 		return
 	}
 	bc, err := browseObject(idParam[0])
 	if err != nil {
-		panic(err) // TODO nfw
+		slog.Error(fmt.Sprintf("Failed to browse id %s with err: %s", idParam[0], err))
+		http.Error(w, "Failed to browse id", http.StatusInternalServerError)
+		return
 	}
 	browse_tmpl, err := template.New("browse").Funcs(template.FuncMap{"hasPrefix": strings.HasPrefix}).Parse(browse_tmpl_string)
 	if err != nil {
-		panic(err)
+		slog.Error(fmt.Sprintf("Failed to Parse() browse template with err: %s", err))
+		http.Error(w, "Failed to Parse() browse template", http.StatusInternalServerError)
+		return
 	}
 	browse_tmpl.Execute(w, bc)
 }
@@ -161,25 +167,33 @@ func getDetail(w http.ResponseWriter, r *http.Request) {
 	params, _ := url.ParseQuery(r.URL.RawQuery)
 	idParam, ok := params["id"]
 	if !ok {
-		io.WriteString(w, "Missing id param")
+		slog.Error("Missing id param")
+		http.Error(w, "Missing id param", http.StatusInternalServerError)
 		return
 	}
 	// there should be only one id param
 	if len(idParam) != 1 {
-		io.WriteString(w, "Too many id params")
+		slog.Error(fmt.Sprintf("Too many id params: %s", idParam))
+		http.Error(w, "Too many id params", http.StatusInternalServerError)
 		return
 	}
 	idint, err := strconv.Atoi(idParam[0])
 	if err != nil {
-		panic(err) // TODO nfw
+		slog.Error(fmt.Sprintf("Failed to Atoi() id param: %s", idParam[0]))
+		http.Error(w, "Failed to Atoi() id param", http.StatusInternalServerError)
+		return
 	}
 	d, err := fetchDetail(idint)
 	if err != nil {
-		panic(err) // TODO nfw
+		slog.Error(fmt.Sprintf("Failed to fetchDetail for id %d with err: %s", idint, err))
+		http.Error(w, "Failed to fetchDetail", http.StatusInternalServerError)
+		return
 	}
 	detail_tmpl, err := template.New("detail").Parse(detail_tmpl_string)
 	if err != nil {
-		panic(err)
+		slog.Error(fmt.Sprintf("Failed to Parse() detail template with err: %s", err))
+		http.Error(w, "Failed to Parse() detail template", http.StatusInternalServerError)
+		return
 	}
 	detail_tmpl.Execute(w, d)
 
@@ -194,6 +208,7 @@ func init() {
 }
 
 func main() {
+	slog.Info("minidlna-web starting")
 	port := flag.Int("listen-port", 3333, "TCP port on which to listen")
 	listenAddr := flag.String("listen-addr", "", "Address on which to listen")
 	flag.Parse()
@@ -216,7 +231,9 @@ func main() {
 	mux.Handle("/static/", http.StripPrefix("/", staticFsServer))
 
 	err := http.ListenAndServe(fmt.Sprintf("%s:%d", *listenAddr, *port), mux)
-	if err != nil {
-		panic(err) // TODO wrong, could be close
+	if errors.Is(err, http.ErrServerClosed) {
+		slog.Info("Server closed")
+	} else { // ListenAndServe always returns non-nil
+		slog.Error("Error listening for server: %s\n", err)
 	}
 }
