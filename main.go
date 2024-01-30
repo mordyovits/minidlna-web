@@ -208,7 +208,6 @@ func init() {
 }
 
 func main() {
-	slog.Info("minidlna-web starting")
 	port := flag.Int("listen-port", 3333, "TCP port on which to listen")
 	listenAddr := flag.String("listen-addr", "", "Address on which to listen")
 	flag.Parse()
@@ -222,6 +221,8 @@ func main() {
 		fmt.Println("ERROR: Missing db-file cmdline parameter")
 		os.Exit(-1)
 	}
+
+	slog.Info("minidlna-web starting")
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", getRoot)
