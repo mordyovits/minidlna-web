@@ -1,18 +1,22 @@
 <html>
   <head>
-	<title>Browse Object</title>
+  <title>Browse Object</title>
+  <link type="image/png" sizes="16x16" rel="icon" href="/static/images/favicon-16.png">
+  <link type="image/png" sizes="32x32" rel="icon" href="/static/images/favicon-32.png">
+  <link type="image/png" sizes="96x96" rel="icon" href="/static/images/favicon-96.png">
+  <link type="image/png" sizes="72x72" rel="icon" href="/static/images/favicon-72.png">
   </head>
   <body>
   <img src="/static/images/minidlna-web-masthead.png"><br/>
-	<h1>Browsing: {{ .Name }}</h1>
+  <h1>Browsing: {{ .Name }}</h1>
     <hr/>
     {{ if ne .Parent_id "-1" }}Parent: <a href="/browse?id={{ .Parent_id }}">UP</a>{{ end }}
-	<ul>
+  <ul>
 {{ range .Children }}
 {{ if hasPrefix .Class "container" }}
       <li>📁 <a href="/browse?id={{ .Object_id }}">{{ .Name }}</a></li>
 {{ else }}
-	  <li>🗎 {{ .Name }}<a href="/detail?id={{ .Detail_id }}">details</a> <a href="{{ $.Base_url }}{{ .Detail_id }}-{{ .Name }}">download</a></li>
+      <li>🗎 {{ .Name }}<a href="/detail?id={{ .Detail_id }}">details</a> <a href="{{ $.Base_url }}{{ .Detail_id }}-{{ .Name }}">download</a></li>
 {{ end }}
 {{ end }}
     </ul>
