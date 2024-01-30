@@ -59,9 +59,6 @@ type browse_context struct {
 	Children  []Object
 }
 
-//go:embed templates/root.tmpl
-var root_tmpl_string string
-
 //go:embed templates/browse.tmpl
 var browse_tmpl_string string
 
@@ -159,15 +156,12 @@ func browseObject(object_id string) (*browse_context, error) {
 }
 
 func getRoot(w http.ResponseWriter, r *http.Request) {
-	details, err := fetchAllDetails()
-	if err != nil {
-		panic(err)
+	// the ServeMux pattern "/" would catch everything
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
 	}
-	root_tmpl, err := template.New("root").Parse(root_tmpl_string)
-	if err != nil {
-		panic(err)
-	}
-	root_tmpl.Execute(w, details)
+	http.Redirect(w, r, "/browse", http.StatusSeeOther)
 }
 
 func getBrowse(w http.ResponseWriter, r *http.Request) {
@@ -245,7 +239,7 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/", http.RedirectHandler("/browse", http.StatusSeeOther))
+	mux.HandleFunc("/", getRoot)
 	mux.HandleFunc("/browse", getBrowse)
 	mux.HandleFunc("/detail", getDetail)
 
