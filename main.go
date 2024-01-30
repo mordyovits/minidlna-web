@@ -68,39 +68,6 @@ var detail_tmpl_string string
 //go:embed static
 var staticFs embed.FS
 
-func fetchAllDetails() ([]Detail, error) {
-	details := make([]Detail, 0)
-	db, err := sql.Open("sqlite", db_filepath)
-	if err != nil {
-		return nil, err
-	}
-	rows, err := db.Query("SELECT id, path, size, timestamp, title, duration, bitrate, samplerate, " +
-		"creator, artist, album, genre, comment, channels, disc, track, date, " +
-		"resolution, thumbnail, album_art, rotation, dlna_pn, mime FROM DETAILS;")
-	if err != nil {
-		return nil, err
-	}
-	for rows.Next() {
-		var d Detail
-		if err = rows.Scan(&d.Id, &d.Path, &d.Size, &d.Timestamp, &d.Title, &d.Duration, &d.Bitrate,
-			&d.Samplerate, &d.Creator, &d.Artist, &d.Album, &d.Genre, &d.Comment,
-			&d.Channels, &d.Disc, &d.Track, &d.Date, &d.Resolution, &d.Thumbnail,
-			&d.Album_art, &d.Rotation, &d.Dlna_pn, &d.Mime); err != nil {
-			return nil, err
-		}
-		details = append(details, d)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
-	if err = db.Close(); err != nil {
-		return nil, err
-	}
-	return details, nil
-}
-
 func fetchDetail(id int) (*Detail, error) {
 	var d Detail
 	db, err := sql.Open("sqlite", db_filepath)
