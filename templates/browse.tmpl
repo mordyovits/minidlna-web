@@ -3,6 +3,7 @@
 	<title>Browse Object</title>
   </head>
   <body>
+  <img src="/static/images/minidlna-web-masthead.png"><br/>
 	<h1>Browsing: {{ .Name }}</h1>
     <hr/>
     {{ if ne .Parent_id "-1" }}Parent: <a href="/browse?id={{ .Parent_id }}">UP</a>{{ end }}

@@ -3,6 +3,7 @@
 	<title>Detail</title>
   </head>
   <body>
+    <img src="/static/images/minidlna-web-masthead.png"><br/>
     <table border="1">
 	{{ if .Path.Valid }}<tr><td>Path</td><td>{{ .Path.String }}</td></tr> {{ end }}
 	{{ if .Size.Valid }}<tr><td>Size</td><td>{{ .Size.Int64 }}</td></tr>{{ end }}

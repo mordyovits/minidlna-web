@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	_ "embed"
+	"embed"
 	"flag"
 	"fmt"
 	"io"
@@ -64,6 +64,9 @@ var browse_tmpl_string string
 
 //go:embed templates/detail.tmpl
 var detail_tmpl_string string
+
+//go:embed static
+var staticFs embed.FS
 
 func fetchAllDetails() ([]Detail, error) {
 	details := make([]Detail, 0)
@@ -242,9 +245,11 @@ func main() {
 	mux.HandleFunc("/", getRoot)
 	mux.HandleFunc("/browse", getBrowse)
 	mux.HandleFunc("/detail", getDetail)
+	staticFsServer := http.FileServer(http.FS(staticFs))
+	mux.Handle("/static/", http.StripPrefix("/", staticFsServer))
 
 	err := http.ListenAndServe(fmt.Sprintf("%s:%d", *listenAddr, *port), mux)
 	if err != nil {
-		panic(err) // wrong, could be close
+		panic(err) // TODO wrong, could be close
 	}
 }
