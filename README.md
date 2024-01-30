@@ -35,12 +35,15 @@ Usage of ./minidlna-web:
 
 # TODO
 * Add search functionality
+* Add tree view of Objects
+* Add full path with clickable components in header breadcrumbs
 * Deal with caching headers (version the static assets?)
 * Use template inheritance to DRY
 * Add FastCGI support so it can run under a web server (which can provide TLS, authentication, and authorization)
 * Improve the HTML and web design, which is very crude
 * Add systemd unit file
 * Add RPM build (spec) and DPKG build files
+* Support multiple languages
 
 # Contributing
 I would most appreciate help with the web design aspects. The project is set up to be pretty easy to contribute that work to: the HTML is in templates/ and the static assets are in static/.
