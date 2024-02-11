@@ -8,6 +8,16 @@
   </head>
   <body>
   <img src="/static/images/minidlna-web-masthead.png"><br/>
+  <form action="/search">
+  <div>
+    <input
+      type="search"
+      id="mySearch"
+      name="q"
+      placeholder="Search..." />
+    <button>Search</button>
+  </div>
+  </form>
   <h1>Browsing: {{ .Name }}</h1>
     <hr/>
     {{ if ne .Parent_id "-1" }}Parent: <a href="/browse?id={{ .Parent_id }}">UP</a>{{ end }}

@@ -66,6 +66,9 @@ var browse_tmpl_string string
 //go:embed templates/detail.tmpl
 var detail_tmpl_string string
 
+//go:embed templates/search.tmpl
+var search_tmpl_string string
+
 //go:embed static
 var staticFs embed.FS
 
@@ -114,7 +117,7 @@ func browseObject(object_id string) (*browse_context, error) {
 		objects = append(objects, o)
 	}
 	if err = rows.Err(); err != nil {
-		fmt.Printf("ERROR gow a rows error\n")
+		fmt.Printf("ERROR got a rows error\n")
 		return nil, err
 	}
 	bc.Children = objects
@@ -124,6 +127,40 @@ func browseObject(object_id string) (*browse_context, error) {
 	}
 	bc.Base_url = base_url
 	return &bc, nil
+}
+
+func doSearch(q string) ([]Detail, error) {
+	db, err := sql.Open("sqlite", db_filepath)
+	if err != nil {
+		return nil, err
+	}
+	// fetch all details that match the search term
+	rows, err := db.Query("SELECT PATH, SIZE, TIMESTAMP, TITLE, DURATION, BITRATE, SAMPLERATE, CREATOR, ARTIST, ALBUM, GENRE, COMMENT, CHANNELS, "+
+		"DISC, TRACK, DATE, RESOLUTION, THUMBNAIL, ALBUM_ART, ROTATION, DLNA_PN, MIME FROM DETAILS WHERE TITLE LIKE '%'||?||'%'", q)
+	if err != nil {
+		fmt.Printf("ERROR querying for details\n")
+		return nil, err
+	}
+	results := make([]Detail, 0)
+	for rows.Next() {
+		var d Detail
+		if err = rows.Scan(&d.Path, &d.Size, &d.Timestamp, &d.Title, &d.Duration, &d.Bitrate, &d.Samplerate, &d.Creator, &d.Artist, &d.Album,
+			&d.Genre, &d.Comment, &d.Channels, &d.Disc, &d.Track, &d.Date, &d.Resolution, &d.Thumbnail, &d.Album_art, &d.Rotation,
+			&d.Dlna_pn, &d.Mime); err != nil {
+			fmt.Printf("ERROR scanning row of detail\n")
+			return nil, err
+		}
+		results = append(results, d)
+	}
+	if err = rows.Err(); err != nil {
+		fmt.Printf("ERROR got a rows error\n")
+		return nil, err
+	}
+	if err = db.Close(); err != nil {
+		fmt.Printf("ERROR closing db\n")
+		return nil, err
+	}
+	return results, nil
 }
 
 func getRoot(w http.ResponseWriter, r *http.Request) {
@@ -196,7 +233,36 @@ func getDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	detail_tmpl.Execute(w, d)
+}
 
+func getSearch(w http.ResponseWriter, r *http.Request) {
+	params, _ := url.ParseQuery(r.URL.RawQuery)
+	qParam, ok := params["q"]
+	if !ok {
+		slog.Error("Missing q param")
+		http.Error(w, "Missing q param", http.StatusInternalServerError)
+		return
+	}
+	// there should be only one id param
+	if len(qParam) != 1 {
+		slog.Error(fmt.Sprintf("Too many q params: %s", qParam))
+		http.Error(w, "Too many q params", http.StatusInternalServerError)
+		return
+	}
+	q := qParam[0]
+	results, err := doSearch(q)
+	if err != nil {
+		slog.Error(fmt.Sprintf("Failed to doSearch for q %s with err: %s", q, err))
+		http.Error(w, "Failed to doSearch", http.StatusInternalServerError)
+		return
+	}
+	search_tmpl, err := template.New("search").Parse(search_tmpl_string)
+	if err != nil {
+		slog.Error(fmt.Sprintf("Failed to Parse() search template with err: %s", err))
+		http.Error(w, "Failed to Parse() search template", http.StatusInternalServerError)
+		return
+	}
+	search_tmpl.Execute(w, results)
 }
 
 var db_filepath string
@@ -228,6 +294,7 @@ func main() {
 	mux.HandleFunc("/", getRoot)
 	mux.HandleFunc("/browse", getBrowse)
 	mux.HandleFunc("/detail", getDetail)
+	mux.HandleFunc("/search", getSearch)
 	staticFsServer := http.FileServer(http.FS(staticFs))
 	mux.Handle("/static/", http.StripPrefix("/", staticFsServer))
 

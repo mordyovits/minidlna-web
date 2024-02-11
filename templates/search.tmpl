@@ -1,0 +1,27 @@
+<html>
+  <head>
+  <title>Search results</title>
+  <link type="image/png" sizes="16x16" rel="icon" href="/static/images/favicon-16.png">
+  <link type="image/png" sizes="32x32" rel="icon" href="/static/images/favicon-32.png">
+  <link type="image/png" sizes="96x96" rel="icon" href="/static/images/favicon-96.png">
+  <link type="image/png" sizes="72x72" rel="icon" href="/static/images/favicon-72.png">
+  </head>
+  <body>
+  <img src="/static/images/minidlna-web-masthead.png"><br/>
+  <form action="/search">
+  <div>
+    <input
+      type="search"
+      id="mySearch"
+      name="q"
+      placeholder="Search..." />
+    <button>Search</button>
+  </div>
+  </form>
+  <h1>Search results:</h1>
+    <hr/>
+{{ range . }}
+    {{ .Title }} <br/>
+{{ end }}
+  </body>
+</html>
