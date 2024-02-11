@@ -135,7 +135,7 @@ func doSearch(q string) ([]Detail, error) {
 		return nil, err
 	}
 	// fetch all details that match the search term
-	rows, err := db.Query("SELECT PATH, SIZE, TIMESTAMP, TITLE, DURATION, BITRATE, SAMPLERATE, CREATOR, ARTIST, ALBUM, GENRE, COMMENT, CHANNELS, "+
+	rows, err := db.Query("SELECT ID, PATH, SIZE, TIMESTAMP, TITLE, DURATION, BITRATE, SAMPLERATE, CREATOR, ARTIST, ALBUM, GENRE, COMMENT, CHANNELS, "+
 		"DISC, TRACK, DATE, RESOLUTION, THUMBNAIL, ALBUM_ART, ROTATION, DLNA_PN, MIME FROM DETAILS WHERE TITLE LIKE '%'||?||'%'", q)
 	if err != nil {
 		fmt.Printf("ERROR querying for details\n")
@@ -144,7 +144,7 @@ func doSearch(q string) ([]Detail, error) {
 	results := make([]Detail, 0)
 	for rows.Next() {
 		var d Detail
-		if err = rows.Scan(&d.Path, &d.Size, &d.Timestamp, &d.Title, &d.Duration, &d.Bitrate, &d.Samplerate, &d.Creator, &d.Artist, &d.Album,
+		if err = rows.Scan(&d.Id, &d.Path, &d.Size, &d.Timestamp, &d.Title, &d.Duration, &d.Bitrate, &d.Samplerate, &d.Creator, &d.Artist, &d.Album,
 			&d.Genre, &d.Comment, &d.Channels, &d.Disc, &d.Track, &d.Date, &d.Resolution, &d.Thumbnail, &d.Album_art, &d.Rotation,
 			&d.Dlna_pn, &d.Mime); err != nil {
 			fmt.Printf("ERROR scanning row of detail\n")

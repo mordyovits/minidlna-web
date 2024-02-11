@@ -21,7 +21,7 @@
   <h1>Search results:</h1>
     <hr/>
 {{ range . }}
-    {{ .Title }} <br/>
+    {{ if .Title.Valid }}<a href="/detail?id={{ .Id }}">{{ .Title.String }}</a>{{ end }}<br/>
 {{ end }}
   </body>
 </html>
